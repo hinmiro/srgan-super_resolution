@@ -69,6 +69,9 @@ def add_random_noise(img):
 
 
 def random_crop_pair(lr, hr, hr_crop_size=92, scale=4):
+    lr = tf.image.convert_image_dtype(lr, tf.float32)
+    hr = tf.image.convert_image_dtype(hr, tf.float32)
+
     lr_crop_size = hr_crop_size // scale
 
     lr_shape = tf.shape(lr)
