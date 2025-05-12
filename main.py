@@ -27,7 +27,7 @@ def main():
 
     # Load datasets
     tf.print("Loading dataset... Please wait")
-    train_ds, val_ds, test_ds = get_div2k_dataset(scale=4, test_split=True)
+    train_ds, val_ds = get_div2k_dataset(scale=4)
     tf.print("Dataset downloaded!")
 
     # Crop image pairs
