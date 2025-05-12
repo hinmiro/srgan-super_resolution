@@ -1,5 +1,6 @@
-import random
 import os
+import random
+
 import tensorflow as tf
 
 from models.model import build_generator, build_srgan_discriminator
@@ -9,13 +10,10 @@ from utils.evaluation import evaluate, plot_comparison
 from utils.helper_functions import (
     add_random_noise,
     flip_left_right,
-    random_rotate,
     random_crop_pair,
+    random_rotate,
 )
-from utils.loss_functions import (
-    set_dis_optimizer,
-    set_gen_optimizer,
-)
+from utils.loss_functions import set_dis_optimizer, set_gen_optimizer
 
 
 def main():

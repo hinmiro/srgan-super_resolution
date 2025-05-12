@@ -4,7 +4,7 @@ import tensorflow_datasets as tfds
 
 def get_div2k_dataset(scale=4, cached=True, test_split=False):
 
-    div2K_data = tfds.image.Div2k(config="bicubic_x{scale}")
+    div2K_data = tfds.image.Div2k(config=f"bicubic_x{scale}")
     div2K_data.download_and_prepare()
 
     train = div2K_data.as_dataset(split="train", as_supervised=True)
