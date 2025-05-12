@@ -1,20 +1,24 @@
-import tensorflow as tf
 import time
-import numpy as np
 
+import numpy as np
+import tensorflow as tf
+from keras.optimizers import Adam
 from rich.progress import Progress
-from utils.util import PSNR, SSIM
+
 from utils.helper_functions import early_stop, reduce_lr
 from utils.loss_functions import (
-    generator_optimizer,
+    discriminator_loss,
     discriminator_optimizer,
     generator_loss,
-    discriminator_loss,
+    generator_optimizer,
 )
+from utils.util import PSNR, SSIM
 
 
 def stage1_train(generator, train_data, val_data, epochs=100, loss="mae"):
-    generator.compile(optimizer=generator_optimizer, loss=loss, metrics=[PSNR, SSIM])
+    generator.compile(
+        optimizer=Adam(learning_rate=1e-4), loss=loss, metrics=[PSNR, SSIM]
+    )
     generator.fit(
         train_data,
         validation_data=val_data,
