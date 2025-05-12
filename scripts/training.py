@@ -1,3 +1,4 @@
+import os
 import time
 
 import numpy as np
@@ -25,6 +26,7 @@ def stage1_train(generator, train_data, val_data, epochs=100, loss="mae"):
         epochs=epochs,
         callbacks=[early_stop, reduce_lr],
     )
+    os.makedirs("../checkpoints", exist_ok=True)
     generator.save_weights("../checkpoints/mae_pretrained.weights.h5")
 
 
