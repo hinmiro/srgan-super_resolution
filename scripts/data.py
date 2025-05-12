@@ -2,25 +2,18 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 
-def get_div2k_dataset(scale=4, cached=True, test_split=False):
+def get_div2k_dataset(scale=4, test_split=True, data_dir=None):
 
-    div2K_data = tfds.image.Div2k(config=f"bicubic_x{scale}")
-    div2K_data.download_and_prepare()
-
-    train = div2K_data.as_dataset(split="train", as_supervised=True)
-    val = div2K_data.as_dataset(split="validation", as_supervised=True)
-
-    if test_split:
-        val = val.enumerate()
-        test = val.filter(lambda i, _: i < 50).map(lambda i, x: x)
-        val = val.filter(lambda i, _: i >= 50).map(lambda i, x: x)
-    else:
-        test = None
-
-    if cached:
-        train = train.cache()
-        val = val.cache()
-        if test:
-            test = test.cache()
-
+    kwargs = {"data_dir": data_dir} if data_dir else {}
+    train = tfds.load(
+        f"div2k/bicubic_x{scale}", split="train", as_supervised=True, **kwargs
+    )
+    val = tfds.load(
+        f"div2k/bicubic_x{scale}", split="validation", as_supervised=True, **kwargs
+    )
+    test = (
+        tfds.load(f"div2k/bicubic_x{scale}", split="test", as_supervised=True, **kwargs)
+        if test_split
+        else None
+    )
     return train, val, test
