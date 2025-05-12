@@ -77,8 +77,8 @@ def main():
 
     # Set optimizers
     tf.print("Setting optimizers")
-    set_dis_optimizer()
-    set_gen_optimizer()
+    set_dis_optimizer(learning_rate=5e-7)
+    set_gen_optimizer(learning_rate=1e-4)
 
     # Stage 1 training with mae loss function
     tf.print("Starting phase 1 training...")
