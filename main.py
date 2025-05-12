@@ -32,13 +32,8 @@ def main():
 
     # Crop image pairs
     train_ds = train_ds.map(
-        lambda lr, hr: random_crop_pair(
-            lr,
-            hr,
-            hr_crop_size=CROP_SIZE,
-            scale=SCALE,
-            num_parallel_calls=tf.data.AUTOTUNE,
-        )
+        lambda lr, hr: random_crop_pair(lr, hr, hr_crop_size=CROP_SIZE, scale=SCALE),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
     val_ds = val_ds.map(
         lambda lr, hr: random_crop_pair(
