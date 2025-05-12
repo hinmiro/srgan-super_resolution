@@ -1,8 +1,8 @@
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
 from utils.util import PSNR, SSIM
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
 
 def flip_left_right(lowres_img, highres_img):
@@ -59,7 +59,7 @@ def random_crop_and_downscale(hr_img, crop_size, scale):
     return lr_patch, hr_patch
 
 
-def add_random_noise_and(img):
+def add_random_noise(img):
     if tf.random.uniform(()) > 0.5:
         img = tf.nn.avg_pool(img[None], ksize=3, strides=1, padding="SAME")[0]
 
