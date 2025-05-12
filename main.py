@@ -48,8 +48,6 @@ def main():
     # Apply batching to data
     train_ds = train_ds.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
     val_ds = val_ds.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
-    if test_ds is not None:
-        test_ds = test_ds.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
     # Print data shapes
     for lr, hr in train_ds.take(1):
@@ -90,14 +88,14 @@ def main():
         generator, discriminator, train_ds, val_ds, patience=30, epoch=200
     )
 
-    # Evaluate with test data
+    """# Evaluate with test data
     evaluate(generator, test_ds)
 
     # Create comparison image
     test_samples = list(test_ds)
     lr, hr = random.choice(test_samples)
     sr = generator(lr, training=False)
-    plot_comparison(lr, sr, hr)
+    plot_comparison(lr, sr, hr)"""
 
 
 if __name__ == "__main__":
