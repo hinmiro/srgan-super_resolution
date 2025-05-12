@@ -1,7 +1,7 @@
 import tensorflow as tf
 from keras.optimizers import Adam
 
-from util import preprocess_vgg, vgg_model
+from utils.util import preprocess_vgg, vgg_model
 
 bce = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 generator_optimizer = None
