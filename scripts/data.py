@@ -10,13 +10,13 @@ def get_div2k_dataset(scale=4, test_split=True, data_dir=None):
     val_full = tfds.load(
         f"div2k/bicubic_x{scale}", split="validation", as_supervised=True, **kwargs
     )
-    val_list = list(val_full)
-    val_size = len(val_list)
-    split_idx = val_size // 2
 
-    val = tf.data.Dataset.from_tensor_slices(val_list[:split_idx])
-    test = (
-        tf.data.Dataset.from_tensor_slices(val_list[split_idx:]) if test_split else None
-    )
+    val_count = 100
+    if test_split:
+        val = val_full.take(val_count // 2)
+        test = val_full.skip(val_count // 2)
+    else:
+        val = val_full
+        test = None
 
     return train, val, test
