@@ -1,3 +1,4 @@
+import tensorflow as tf
 from keras import layers
 from keras.utils import register_keras_serializable
 
