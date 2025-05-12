@@ -21,13 +21,13 @@ def main():
     print("---SRGAN Super resolution model---")
 
     # Hyperparameters
-    CROP_SIZE = 192
+    CROP_SIZE = 128
     SCALE = 4
     BATCH_SIZE = 2
 
     # Load datasets
     tf.print("Loading dataset... Please wait")
-    train_ds, val_ds = get_div2k_dataset(scale=4)
+    train_ds, val_ds, test_ds = get_div2k_dataset(scale=4, test_split=True)
     tf.print("Dataset downloaded!")
 
     # Crop image pairs
@@ -48,6 +48,7 @@ def main():
     # Apply batching to data
     train_ds = train_ds.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
     val_ds = val_ds.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+    test_ds = test_ds.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
     # Print data shapes
     for lr, hr in train_ds.take(1):
@@ -70,7 +71,9 @@ def main():
 
     # Build models
     tf.print("Building models")
-    discriminator = build_srgan_discriminator(input_shape=(192, 192, 3), num_filters=64)
+    discriminator = build_srgan_discriminator(
+        input_shape=(CROP_SIZE, CROP_SIZE, 3), num_filters=64
+    )
     generator = build_generator(num_filters=64, num_res_blocks=16, scale=4)
 
     # Set optimizers
@@ -88,14 +91,14 @@ def main():
         generator, discriminator, train_ds, val_ds, patience=30, epoch=200
     )
 
-    """# Evaluate with test data
+    # Evaluate with test data
     evaluate(generator, test_ds)
 
     # Create comparison image
     test_samples = list(test_ds)
     lr, hr = random.choice(test_samples)
     sr = generator(lr, training=False)
-    plot_comparison(lr, sr, hr)"""
+    plot_comparison(lr, sr, hr)
 
 
 if __name__ == "__main__":
