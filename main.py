@@ -25,6 +25,7 @@ def main():
     CROP_SIZE = 192
     SCALE = 4
     BATCH_SIZE = 2
+    AUTOTUNE = tf.data.AUTOTUNE
 
     y_n = input("Download dataset? Y/N")
     if y_n.upper() == "Y":
@@ -68,29 +69,28 @@ def main():
         print("LR shape before crop:", lr.shape)
         print("HR shape before crop:", hr.shape)
 
+    # Add noise to train data
+    tf.print("Preparing dataset...")
+    train_ds = train_ds.map(
+        lambda lr, hr: (add_random_noise(lr), hr), num_parallel_calls=AUTOTUNE
+    )
+    # Add data augmentation to train data
+    train_ds = train_ds.map(
+        lambda lr, hr: (random_rotate(lr, hr)), num_parallel_calls=AUTOTUNE
+    )
+    train_ds = train_ds.map(
+        lambda lr, hr: (flip_left_right(lr, hr)), num_parallel_calls=AUTOTUNE
+    )
+
     # Apply batching to data
-    train_ds = train_ds.batch(BATCH_SIZE).prefetch(1)
-    val_ds = val_ds.batch(BATCH_SIZE).prefetch(1)
-    test_ds = test_ds.batch(BATCH_SIZE).prefetch(1)
+    train_ds = train_ds.batch(BATCH_SIZE).prefetch(AUTOTUNE)
+    val_ds = val_ds.batch(BATCH_SIZE).prefetch(AUTOTUNE)
+    test_ds = test_ds.batch(BATCH_SIZE).prefetch(AUTOTUNE)
 
     # Print data shapes
     for lr, hr in train_ds.take(1):
         print("LR patch shape:", lr.shape)
         print("HR patch shape:", hr.shape)
-
-    # Add noise to train data
-    tf.print("Preparing dataset...")
-    train_ds = train_ds.map(
-        lambda lr, hr: (add_random_noise(lr), hr), num_parallel_calls=tf.data.AUTOTUNE
-    )
-
-    # Add data augmentation to train data
-    train_ds = train_ds.map(
-        lambda lr, hr: (random_rotate(lr, hr)), num_parallel_calls=tf.data.AUTOTUNE
-    )
-    train_ds = train_ds.map(
-        lambda lr, hr: (flip_left_right(lr, hr)), num_parallel_calls=tf.data.AUTOTUNE
-    )
 
     # Build models
     tf.print("Building models")
