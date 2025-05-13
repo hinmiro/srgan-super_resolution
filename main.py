@@ -105,6 +105,7 @@ def main():
 
     elif skip_train.upper() == "G":
         print("Starting Gradio Server...")
+        generator = load_model("./checkpoints/srgan_generator.keras")
         launch_gradio(generator)
 
     else:
