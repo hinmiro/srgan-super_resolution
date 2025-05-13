@@ -5,13 +5,13 @@ import shutil
 import tensorflow as tf
 
 from models.model import build_generator, build_srgan_discriminator
-from scripts.data import load_dataset, download_data, construct_datasets
+from scripts.data import construct_datasets, download_data, load_dataset
 from scripts.training import stage1_train, stage_2_train
 from utils.evaluation import evaluate, plot_comparison
 from utils.helper_functions import (
     flip_left_right,
-    random_rotate,
     random_crop_and_downscale,
+    random_rotate,
 )
 from utils.loss_functions import set_dis_optimizer, set_gen_optimizer
 
@@ -26,7 +26,7 @@ def main():
     BATCH_SIZE = 2
     AUTOTUNE = tf.data.AUTOTUNE
 
-    y_n = input("Download dataset? Y/N")
+    y_n = input("Download dataset? Y/N: ")
     if y_n.upper() == "Y":
         download_data()
 
