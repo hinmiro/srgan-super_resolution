@@ -101,8 +101,8 @@ def main():
 
     # Set optimizers
     tf.print("Setting optimizers")
-    set_dis_optimizer(learning_rate=5e-7)
-    set_gen_optimizer(learning_rate=1e-4)
+    d_optimizer = set_dis_optimizer(learning_rate=5e-7)
+    g_optimizer = set_gen_optimizer(learning_rate=1e-4)
 
     # Stage 1 training with mae loss function
     load_weights = input("Load pretrained weights to skip pre training? Y/N: ")
@@ -117,7 +117,14 @@ def main():
     # Stage 2 training
     tf.print("Starting phase 2 training...")
     history = stage_2_train(
-        generator, discriminator, train_ds, val_ds, patience=30, epoch=200
+        generator,
+        discriminator,
+        g_optimizer,
+        d_optimizer,
+        train_ds,
+        val_ds,
+        patience=30,
+        epoch=200,
     )
 
     # Evaluate with test data

@@ -10,12 +10,12 @@ discriminator_optimizer = None
 
 def set_gen_optimizer(learning_rate=1e-4):
     global generator_optimizer
-    generator_optimizer = Adam(learning_rate=learning_rate)
+    return Adam(learning_rate=learning_rate)
 
 
 def set_dis_optimizer(learning_rate=5e-7):
     global discriminator_optimizer
-    discriminator_optimizer = Adam(learning_rate=learning_rate)
+    return Adam(learning_rate=learning_rate)
 
 
 def discriminator_loss(real_output, fake_output):

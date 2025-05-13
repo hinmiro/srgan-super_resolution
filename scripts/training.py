@@ -40,7 +40,7 @@ def validate(generator, val_sr):
 
 
 @tf.function
-def train_step(lr, hr, generator, discriminator):
+def train_step(lr, hr, generator, discriminator, g_optimizer, d_optimizer):
     with tf.GradientTape(persistent=True) as tape:
         sr = generator(lr, training=True)
         real_output = discriminator(hr, training=True)
@@ -57,15 +57,22 @@ def train_step(lr, hr, generator, discriminator):
         grads_g = tape.gradient(g_loss, generator.trainable_variables)
         grads_d = tape.gradient(d_loss, discriminator.trainable_variables)
 
-        generator_optimizer.apply_gradients(zip(grads_g, generator.trainable_variables))
-        discriminator_optimizer.apply_gradients(
-            zip(grads_d, discriminator.trainable_variables)
-        )
+        g_optimizer.apply_gradients(zip(grads_g, generator.trainable_variables))
+        d_optimizer.apply_gradients(zip(grads_d, discriminator.trainable_variables))
 
         return g_loss, d_loss
 
 
-def stage_2_train(generator, discriminator, train_sr, val_sr, patience=20, epoch=200):
+def stage_2_train(
+    generator,
+    discriminator,
+    g_optimizer,
+    d_optimizer,
+    train_sr,
+    val_sr,
+    patience=20,
+    epoch=200,
+):
     best_ssim = -np.inf
     wait = 0
     EPOCHS = epoch
@@ -79,7 +86,9 @@ def stage_2_train(generator, discriminator, train_sr, val_sr, patience=20, epoch
 
             task = progress.add_task(f"[cyan]Epoch {epoch+1}", total=num_batches)
             for batch_idx, (lr, hr) in enumerate(train_sr):
-                g_loss, d_loss = train_step(lr, hr, generator, discriminator)
+                g_loss, d_loss = train_step(
+                    lr, hr, generator, discriminator, g_optimizer, d_optimizer
+                )
                 g_losses.append(g_loss.numpy())
                 d_losses.append(d_loss.numpy())
                 progress.update(
