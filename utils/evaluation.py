@@ -16,7 +16,7 @@ def evaluate(generator, test_sr):
     print(f"Test SSIM: {np.mean(ssim_vals):.4f}")
 
 
-def plot_comparison(lr, sr, hr, filename="../data/comparison.png"):
+def plot_comparison(lr, sr, hr, filename="./data/comparison.png"):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     plt.figure(figsize=(12, 4))
     titles = ["Low-Res", "Super-Res", "High-Res"]

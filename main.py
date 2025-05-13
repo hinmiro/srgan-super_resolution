@@ -109,7 +109,7 @@ def main():
     # Create comparison image
     for lr, hr in test_sr.take(1):
         sr = generator(lr, training=False)
-        plot_comparison(lr, sr, hr)
+        plot_comparison(lr[0], sr[0], hr[0])
 
 
 if __name__ == "__main__":
