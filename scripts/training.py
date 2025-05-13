@@ -100,9 +100,9 @@ def stage_2_train(
             elapsed = int(time.time() - start_time)
             elapsed_str = time.strftime("%H:%M:%S", time.gmtime(elapsed))
             desc = (
-                f"[cyan]Epoch {epoch+1}"
-                f"[green] g_loss {np.mean(g_losses):.3f} d_loss {np.mean(d_losses):.3f}  PSNR: {val_psnr:.3f} | SSIM: {val_ssim:.3f}[/green]"
-                f"[cyan]/{elapsed_str}[/cyan]"
+                f"[cyan]Epoch {epoch+1}/{EPOCHS}"
+                f"[green] g_loss {np.mean(g_losses):.3f}, d_loss {np.mean(d_losses):.3f},  PSNR: {val_psnr:.3f}, SSIM: {val_ssim:.3f}[/green]"
+                f"[cyan] {elapsed_str}[/cyan]"
             )
             progress.update(task, description=desc)
 
