@@ -3,7 +3,12 @@ import os
 import requests
 import tensorflow as tf
 
-from utils.helper_functions import load_image
+from utils.helper_functions import (
+    load_image,
+    random_crop_and_downscale,
+    random_rotate,
+    flip_left_right,
+)
 from zipfile import ZipFile
 
 
@@ -70,17 +75,21 @@ def load_dataset(data_dir):
     test_ds = tf.data.Dataset.from_tensor_slices(test_files).map(
         load_image, num_parallel_calls=tf.data.AUTOTUNE
     )
+    return train_ds, val_ds, test_ds
 
 
-def construct_datasets(train_files, val_files, test_files):
-    train_ds = tf.data.Dataset.from_tensor_slices(train_files).map(
-        load_image, num_parallel_calls=tf.data.AUTOTUNE
+def construct_datasets(train_ds, val_ds, test_ds, batch_size):
+    train_sr = train_ds.map(
+        random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE
     )
+    train_sr = train_sr.map(random_rotate, num_parallel_calls=tf.data.AUTOTUNE)
+    train_sr = train_sr.map(flip_left_right, num_parallel_calls=tf.data.AUTOTUNE)
+    train_sr = train_sr.batch(batch_size).prefetch(tf.data.AUTOTUNE)
 
-    val_ds = tf.data.Dataset.from_tensor_slices(val_files).map(
-        load_image, num_parallel_calls=tf.data.AUTOTUNE
-    )
+    val_sr = val_ds.map(random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE)
+    val_sr = val_sr.batch(batch_size).prefetch(tf.data.AUTOTUNE)
 
-    test_ds = tf.data.Dataset.from_tensor_slices(test_files).map(
-        load_image, num_parallel_calls=tf.data.AUTOTUNE
+    test_sr = test_ds.map(
+        random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE
     )
+    test_sr = test_sr.batch(batch_size).prefetch(tf.data.AUTOTUNE)

@@ -54,23 +54,10 @@ def main():
         print("Test files already exist")
 
     # Load datasets
-    train_files, val_files, test_files = load_dataset("./data")
-    train_ds, val_ds, test_ds = construct_datasets(train_files, val_files, test_files)
-
-    train_sr = train_ds.map(
-        random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE
+    train_ds, val_ds, test_ds = load_dataset("./data")
+    train_sr, val_sr, test_sr = construct_datasets(
+        train_ds, val_ds, test_ds, BATCH_SIZE
     )
-    train_sr = train_sr.map(random_rotate, num_parallel_calls=tf.data.AUTOTUNE)
-    train_sr = train_sr.map(flip_left_right, num_parallel_calls=tf.data.AUTOTUNE)
-    train_sr = train_sr.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
-
-    val_sr = val_ds.map(random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE)
-    val_sr = val_sr.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
-
-    test_sr = test_ds.map(
-        random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE
-    )
-    test_sr = test_sr.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
     # Print data shapes
     for lr, hr in train_sr.take(1):
