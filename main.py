@@ -1,10 +1,11 @@
 import os
 import random
+import shutil
 
 import tensorflow as tf
 
 from models.model import build_generator, build_srgan_discriminator
-from scripts.data import get_div2k_dataset, get_patch_dataset, get_test_dataset
+from scripts.data import get_file_patch_dataset, download_data
 from scripts.training import stage1_train, stage_2_train
 from utils.evaluation import evaluate, plot_comparison
 from utils.helper_functions import (
@@ -25,41 +26,52 @@ def main():
     SCALE = 4
     BATCH_SIZE = 2
 
+    y_n = input("Download dataset? Y/N")
+    if y_n.upper() == "Y":
+        download_data()
+
+    # Data locations
+    train = "./data/DIV2K_train_HR/"
+    validation = "./data/DIV2K_valid_HR/"
+    test = "./data/DIV2K_test_HR"
+    os.makedirs(test, exist_ok=True)
+
+    for path in [train, validation, test]:
+        if not os.path.exists(path):
+            print(f"Warning: {path} does not exist!")
+
+    train_files = os.listdir(train)
+    num_test_files = int(len(train_files) * 0.15)
+    files_to_move = random.sample(train_files, num_test_files)
+
+    if not os.listdir(test):
+        for file in files_to_move:
+            src = os.path.join(train, file)
+            dst = os.path.join(test, file)
+            shutil.move(src, dst)
+        print(f"Moved {len(files_to_move)} files to test directory")
+    else:
+        print("Test files already exist")
+
     # Load datasets
-    tf.print("Loading dataset... Please wait")
-    # train_ds, val_ds, test_ds = get_div2k_dataset(scale=4, test_split=True)
-    train_ds = get_patch_dataset(
-        "train", crop_size=192, scale=4, n_patches_per_image=tf.data.AUTOTUNE
+    train_ds = get_file_patch_dataset(
+        train, crop_size=CROP_SIZE, scale=SCALE, n_patches_per_image=4
     )
-    val_ds = get_patch_dataset(
-        "validation", crop_size=192, scale=4, n_patches_per_image=tf.data.AUTOTUNE
+    val_ds = get_file_patch_dataset(
+        validation, crop_size=CROP_SIZE, scale=SCALE, n_patches_per_image=2
     )
-    test_ds = get_test_dataset(val_ds)
-    tf.print("Dataset downloaded!")
+    test_ds = get_file_patch_dataset(
+        test, crop_size=CROP_SIZE, scale=SCALE, n_patches_per_image=1
+    )
 
     for lr, hr in train_ds.take(1):
         print("LR shape before crop:", lr.shape)
         print("HR shape before crop:", hr.shape)
 
-    # Crop image pairs
-    """  train_ds = train_ds.map(
-            lambda lr, hr: random_crop_pair(lr, hr, hr_crop_size=CROP_SIZE, scale=SCALE),
-            num_parallel_calls=tf.data.AUTOTUNE,
-        )
-        val_ds = val_ds.map(
-            lambda lr, hr: random_crop_pair(
-                lr,
-                hr,
-                hr_crop_size=CROP_SIZE,
-                scale=SCALE,
-            ),
-            num_parallel_calls=tf.data.AUTOTUNE,
-        )"""
-
     # Apply batching to data
-    train_ds = train_ds.repeat().batch(BATCH_SIZE).prefetch(1)
-    val_ds = val_ds.repeat().batch(BATCH_SIZE).prefetch(1)
-    test_ds = test_ds.repeat().batch(BATCH_SIZE).prefetch(1)
+    train_ds = train_ds.batch(BATCH_SIZE).prefetch(1)
+    val_ds = val_ds.batch(BATCH_SIZE).prefetch(1)
+    test_ds = test_ds.batch(BATCH_SIZE).prefetch(1)
 
     # Print data shapes
     for lr, hr in train_ds.take(1):
