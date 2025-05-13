@@ -29,10 +29,10 @@ def main():
     tf.print("Loading dataset... Please wait")
     # train_ds, val_ds, test_ds = get_div2k_dataset(scale=4, test_split=True)
     train_ds = get_patch_dataset(
-        "train", crop_size=192, scale=4, n_patches_per_image=10
+        "train", crop_size=192, scale=4, n_patches_per_image=tf.data.AUTOTUNE
     )
     val_ds = get_patch_dataset(
-        "validation", crop_size=192, scale=4, n_patches_per_image=10
+        "validation", crop_size=192, scale=4, n_patches_per_image=tf.data.AUTOTUNE
     )
     test_ds = get_test_dataset(val_ds)
     tf.print("Dataset downloaded!")
@@ -69,15 +69,15 @@ def main():
     # Add noise to train data
     tf.print("Preparing dataset...")
     train_ds = train_ds.map(
-        lambda lr, hr: (add_random_noise(lr), hr), num_parallel_calls=1
+        lambda lr, hr: (add_random_noise(lr), hr), num_parallel_calls=tf.data.AUTOTUNE
     )
 
     # Add data augmentation to train data
     train_ds = train_ds.map(
-        lambda lr, hr: (random_rotate(lr, hr)), num_parallel_calls=1
+        lambda lr, hr: (random_rotate(lr, hr)), num_parallel_calls=tf.data.AUTOTUNE
     )
     train_ds = train_ds.map(
-        lambda lr, hr: (flip_left_right(lr, hr)), num_parallel_calls=1
+        lambda lr, hr: (flip_left_right(lr, hr)), num_parallel_calls=tf.data.AUTOTUNE
     )
 
     # Build models

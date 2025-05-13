@@ -23,7 +23,7 @@ def get_div2k_dataset(scale=4, test_split=True, data_dir=None):
 
 
 # Trying not to oom GPU
-def patch_generator(split, crop_size=128, scale=4, n_patches_per_image=10):
+def patch_generator(split, crop_size=192, scale=4, n_patches_per_image=10):
     ds = tfds.load("div2k/bicubic_x4", split=split, as_supervised=True)
     for lr_img, hr_img in ds:
         hr_shape = tf.shape(hr_img)
@@ -38,7 +38,7 @@ def patch_generator(split, crop_size=128, scale=4, n_patches_per_image=10):
             yield lr_patch, hr_patch
 
 
-def get_patch_dataset(split, crop_size=128, scale=4, n_patches_per_image=10):
+def get_patch_dataset(split, crop_size=192, scale=4, n_patches_per_image=10):
     output_signature = (
         tf.TensorSpec(
             shape=(crop_size // scale, crop_size // scale, 3), dtype=tf.float32
