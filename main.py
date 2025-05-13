@@ -21,7 +21,7 @@ def main():
     print("---SRGAN Super resolution model---")
 
     # Hyperparameters
-    CROP_SIZE = 128
+    CROP_SIZE = 192
     SCALE = 4
     BATCH_SIZE = 2
 
@@ -29,6 +29,10 @@ def main():
     tf.print("Loading dataset... Please wait")
     train_ds, val_ds, test_ds = get_div2k_dataset(scale=4, test_split=True)
     tf.print("Dataset downloaded!")
+
+    for lr, hr in train_ds.take(1):
+        print("LR shape before crop:", lr.shape)
+        print("HR shape before crop:", hr.shape)
 
     # Crop image pairs
     train_ds = train_ds.map(
@@ -46,9 +50,9 @@ def main():
     )
 
     # Apply batching to data
-    train_ds = train_ds.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
-    val_ds = val_ds.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
-    test_ds = test_ds.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+    train_ds = train_ds.batch(BATCH_SIZE).prefetch(1)
+    val_ds = val_ds.batch(BATCH_SIZE).prefetch(1)
+    test_ds = test_ds.batch(BATCH_SIZE).prefetch(1)
 
     # Print data shapes
     for lr, hr in train_ds.take(1):
