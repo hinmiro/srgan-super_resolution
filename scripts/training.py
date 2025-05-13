@@ -9,9 +9,7 @@ from rich.progress import Progress
 from utils.helper_functions import early_stop, reduce_lr
 from utils.loss_functions import (
     discriminator_loss,
-    discriminator_optimizer,
     generator_loss,
-    generator_optimizer,
 )
 from utils.util import PSNR, SSIM
 
@@ -113,10 +111,10 @@ def stage_2_train(
 
             # Reduce learning rate
             if wait > 0 and wait % 5 == 0:
-                old_lr = generator_optimizer.learning_rate.numpy()
+                old_lr = g_optimizer.learning_rate.numpy()
                 new_lr = max(old_lr * 0.5, 1e-6)
-                generator_optimizer.learning_rate.assign(new_lr)
-                discriminator_optimizer.learning_rate.assign(new_lr)
+                g_optimizer.learning_rate.assign(new_lr)
+                d_optimizer.learning_rate.assign(new_lr)
                 progress.console.print(f"[red]Reduced learning rate to {new_lr}[/red]")
 
             # Early stop with ssim

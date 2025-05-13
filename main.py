@@ -8,17 +8,13 @@ from models.model import build_generator, build_srgan_discriminator
 from scripts.data import construct_datasets, download_data, load_dataset
 from scripts.training import stage1_train, stage_2_train
 from utils.evaluation import evaluate, plot_comparison
-from utils.helper_functions import (
-    flip_left_right,
-    random_crop_and_downscale,
-    random_rotate,
-)
+from resource.banner import banner
 from utils.loss_functions import set_dis_optimizer, set_gen_optimizer
 
 
 def main():
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-    print("---SRGAN Super resolution model---")
+    print(banner)
 
     # Hyperparameters
     CROP_SIZE = 192
