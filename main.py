@@ -56,7 +56,7 @@ def main():
     # Load datasets
     train_ds, val_ds, test_ds = load_dataset("./data")
     train_sr, val_sr, test_sr = construct_datasets(
-        train_ds, val_ds, test_ds, BATCH_SIZE
+        train_ds, val_ds, test_ds, BATCH_SIZE, CROP_SIZE, SCALE
     )
 
     # Print data shapes

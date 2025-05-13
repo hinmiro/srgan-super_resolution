@@ -78,18 +78,25 @@ def load_dataset(data_dir):
     return train_ds, val_ds, test_ds
 
 
-def construct_datasets(train_ds, val_ds, test_ds, batch_size):
+def construct_datasets(train_ds, val_ds, test_ds, batch_size, crop_size, scale):
     train_sr = train_ds.map(
-        random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE
+        lambda img: random_crop_and_downscale(img, crop_size, scale),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
     train_sr = train_sr.map(random_rotate, num_parallel_calls=tf.data.AUTOTUNE)
     train_sr = train_sr.map(flip_left_right, num_parallel_calls=tf.data.AUTOTUNE)
     train_sr = train_sr.batch(batch_size).prefetch(tf.data.AUTOTUNE)
 
-    val_sr = val_ds.map(random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE)
+    val_sr = val_ds.map(
+        lambda img: random_crop_and_downscale(img, crop_size, scale),
+        num_parallel_calls=tf.data.AUTOTUNE,
+    )
     val_sr = val_sr.batch(batch_size).prefetch(tf.data.AUTOTUNE)
 
     test_sr = test_ds.map(
-        random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE
+        lambda img: random_crop_and_downscale(img, crop_size, scale),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
     test_sr = test_sr.batch(batch_size).prefetch(tf.data.AUTOTUNE)
+
+    return train_sr, val_sr, test_sr
