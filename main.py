@@ -4,7 +4,7 @@ import random
 import tensorflow as tf
 
 from models.model import build_generator, build_srgan_discriminator
-from scripts.data import get_div2k_dataset
+from scripts.data import get_div2k_dataset, get_patch_dataset, get_test_dataset
 from scripts.training import stage1_train, stage_2_train
 from utils.evaluation import evaluate, plot_comparison
 from utils.helper_functions import (
@@ -27,7 +27,14 @@ def main():
 
     # Load datasets
     tf.print("Loading dataset... Please wait")
-    train_ds, val_ds, test_ds = get_div2k_dataset(scale=4, test_split=True)
+    # train_ds, val_ds, test_ds = get_div2k_dataset(scale=4, test_split=True)
+    train_ds = get_patch_dataset(
+        "train", crop_size=192, scale=4, n_patches_per_image=10
+    )
+    val_ds = get_patch_dataset(
+        "validation", crop_size=192, scale=4, n_patches_per_image=10
+    )
+    test_ds = get_test_dataset(val_ds)
     tf.print("Dataset downloaded!")
 
     for lr, hr in train_ds.take(1):
@@ -35,19 +42,19 @@ def main():
         print("HR shape before crop:", hr.shape)
 
     # Crop image pairs
-    train_ds = train_ds.map(
-        lambda lr, hr: random_crop_pair(lr, hr, hr_crop_size=CROP_SIZE, scale=SCALE),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-    val_ds = val_ds.map(
-        lambda lr, hr: random_crop_pair(
-            lr,
-            hr,
-            hr_crop_size=CROP_SIZE,
-            scale=SCALE,
-        ),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
+    """  train_ds = train_ds.map(
+            lambda lr, hr: random_crop_pair(lr, hr, hr_crop_size=CROP_SIZE, scale=SCALE),
+            num_parallel_calls=tf.data.AUTOTUNE,
+        )
+        val_ds = val_ds.map(
+            lambda lr, hr: random_crop_pair(
+                lr,
+                hr,
+                hr_crop_size=CROP_SIZE,
+                scale=SCALE,
+            ),
+            num_parallel_calls=tf.data.AUTOTUNE,
+        )"""
 
     # Apply batching to data
     train_ds = train_ds.batch(BATCH_SIZE).prefetch(1)
@@ -62,15 +69,15 @@ def main():
     # Add noise to train data
     tf.print("Preparing dataset...")
     train_ds = train_ds.map(
-        lambda lr, hr: (add_random_noise(lr), hr), num_parallel_calls=tf.data.AUTOTUNE
+        lambda lr, hr: (add_random_noise(lr), hr), num_parallel_calls=1
     )
 
     # Add data augmentation to train data
     train_ds = train_ds.map(
-        lambda lr, hr: (random_rotate(lr, hr)), num_parallel_calls=tf.data.AUTOTUNE
+        lambda lr, hr: (random_rotate(lr, hr)), num_parallel_calls=1
     )
     train_ds = train_ds.map(
-        lambda lr, hr: (flip_left_right(lr, hr)), num_parallel_calls=tf.data.AUTOTUNE
+        lambda lr, hr: (flip_left_right(lr, hr)), num_parallel_calls=1
     )
 
     # Build models
