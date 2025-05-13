@@ -6,3 +6,4 @@ rich
 tqdm
 scikit-image
 tensorflow_datasets
+gradio

@@ -7,6 +7,7 @@ import tensorflow as tf
 
 from models.model import build_generator, build_srgan_discriminator
 from scripts.data import construct_datasets, download_data, load_dataset
+from scripts.gradio_app import launch_gradio
 from scripts.training import stage1_train, stage_2_train
 from utils.evaluation import evaluate, plot_comparison
 from utils.loss_functions import set_dis_optimizer, set_gen_optimizer
@@ -72,7 +73,9 @@ def main():
     d_optimizer = set_dis_optimizer(learning_rate=5e-7)
     g_optimizer = set_gen_optimizer(learning_rate=1e-4)
 
-    skip_train = input("Skip training and load pretrained model? Y/N: ")
+    skip_train = input(
+        "Skip training and load pretrained model or start gradio app? Y/N or G: "
+    )
     if skip_train.upper() == "N":
 
         # Stage 1 training with mae loss function
@@ -99,6 +102,10 @@ def main():
         )
     elif skip_train.upper() == "Y":
         generator = load_model("./checkpoints/srgan_generator.keras")
+
+    elif skip_train.upper() == "G":
+        print("Starting Gradio Server...")
+        launch_gradio(generator)
 
     else:
         print("Invalid choice...")
