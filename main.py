@@ -94,7 +94,7 @@ def main():
             d_optimizer,
             train_sr,
             val_sr,
-            patience=30,
+            patience=50,
             epoch=200,
         )
     elif skip_train.upper() == "Y":

@@ -36,7 +36,9 @@ def generator_loss(fake_output, sr, hr):
 
     pixel_loss = tf.reduce_mean(tf.abs(hr - sr))
 
-    return 2e-5 * adv_loss + 0.006 * perceptual_loss + pixel_loss
+    return (
+        1e-3 * adv_loss + 0.01 * perceptual_loss + pixel_loss
+    )  # Was 2e-5 and 0.006 before
 
 
 @tf.function
