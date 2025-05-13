@@ -11,10 +11,10 @@ from utils.evaluation import evaluate, plot_comparison
 from utils.helper_functions import (
     add_random_noise,
     flip_left_right,
-    random_crop_pair,
     random_rotate,
 )
 from utils.loss_functions import set_dis_optimizer, set_gen_optimizer
+from keras import Model
 
 
 def main():
@@ -105,8 +105,14 @@ def main():
     set_gen_optimizer(learning_rate=1e-4)
 
     # Stage 1 training with mae loss function
-    tf.print("Starting phase 1 training...")
-    stage1_train(generator, train_ds, val_ds, epochs=120)
+    load_weights = input("Load pretrained weights to skip pre training? Y/N: ")
+    if load_weights.upper() == "N":
+        tf.print("Starting phase 1 training...")
+        stage1_train(generator, train_ds, val_ds, epochs=120)
+    elif load_weights.upper() == "Y":
+        generator.load_weights("./checkpoints/mae_pretrained.weights.h5")
+    else:
+        print("Invalid choice...")
 
     # Stage 2 training
     tf.print("Starting phase 2 training...")

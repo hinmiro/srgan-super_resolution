@@ -26,8 +26,8 @@ def stage1_train(generator, train_data, val_data, epochs=100, loss="mae"):
         epochs=epochs,
         callbacks=[early_stop, reduce_lr],
     )
-    os.makedirs("../checkpoints", exist_ok=True)
-    generator.save_weights("../checkpoints/mae_pretrained.weights.h5")
+    os.makedirs("./checkpoints", exist_ok=True)
+    generator.save_weights("./checkpoints/mae_pretrained.weights.h5")
 
 
 def validate(generator, val_sr):
@@ -121,5 +121,5 @@ def stage_2_train(generator, discriminator, train_sr, val_sr, patience=20, epoch
                     print(f"Early stop activated at epoch {epoch+1}")
                     break
 
-        generator.save("../checkpoints/srgan_generator.keras")
+        generator.save("./checkpoints/srgan_generator.keras")
         return (g_losses_history, d_losses_history)
