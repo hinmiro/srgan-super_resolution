@@ -5,16 +5,15 @@ import shutil
 import tensorflow as tf
 
 from models.model import build_generator, build_srgan_discriminator
-from scripts.data import get_file_patch_dataset, download_data
+from scripts.data import load_dataset, download_data, construct_datasets
 from scripts.training import stage1_train, stage_2_train
 from utils.evaluation import evaluate, plot_comparison
 from utils.helper_functions import (
-    add_random_noise,
     flip_left_right,
     random_rotate,
+    random_crop_and_downscale,
 )
 from utils.loss_functions import set_dis_optimizer, set_gen_optimizer
-from keras import Model
 
 
 def main():
@@ -55,40 +54,26 @@ def main():
         print("Test files already exist")
 
     # Load datasets
-    train_ds = get_file_patch_dataset(
-        train, crop_size=CROP_SIZE, scale=SCALE, n_patches_per_image=4
-    )
-    val_ds = get_file_patch_dataset(
-        validation, crop_size=CROP_SIZE, scale=SCALE, n_patches_per_image=2
-    )
-    test_ds = get_file_patch_dataset(
-        test, crop_size=CROP_SIZE, scale=SCALE, n_patches_per_image=1
-    )
+    train_files, val_files, test_files = load_dataset("./data")
+    train_ds, val_ds, test_ds = construct_datasets(train_files, val_files, test_files)
 
-    for lr, hr in train_ds.take(1):
-        print("LR shape before crop:", lr.shape)
-        print("HR shape before crop:", hr.shape)
+    train_sr = train_ds.map(
+        random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE
+    )
+    train_sr = train_sr.map(random_rotate, num_parallel_calls=tf.data.AUTOTUNE)
+    train_sr = train_sr.map(flip_left_right, num_parallel_calls=tf.data.AUTOTUNE)
+    train_sr = train_sr.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
-    # Add noise to train data
-    tf.print("Preparing dataset...")
-    train_ds = train_ds.map(
-        lambda lr, hr: (add_random_noise(lr), hr), num_parallel_calls=AUTOTUNE
-    )
-    # Add data augmentation to train data
-    train_ds = train_ds.map(
-        lambda lr, hr: (random_rotate(lr, hr)), num_parallel_calls=AUTOTUNE
-    )
-    train_ds = train_ds.map(
-        lambda lr, hr: (flip_left_right(lr, hr)), num_parallel_calls=AUTOTUNE
-    )
+    val_sr = val_ds.map(random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE)
+    val_sr = val_sr.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
-    # Apply batching to data
-    train_ds = train_ds.batch(BATCH_SIZE).prefetch(1)
-    val_ds = val_ds.batch(BATCH_SIZE).prefetch(1)
-    test_ds = test_ds.batch(BATCH_SIZE).prefetch(1)
+    test_sr = test_ds.map(
+        random_crop_and_downscale, num_parallel_calls=tf.data.AUTOTUNE
+    )
+    test_sr = test_sr.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
     # Print data shapes
-    for lr, hr in train_ds.take(1):
+    for lr, hr in train_sr.take(1):
         print("LR patch shape:", lr.shape)
         print("HR patch shape:", hr.shape)
 
@@ -108,7 +93,7 @@ def main():
     load_weights = input("Load pretrained weights to skip pre training? Y/N: ")
     if load_weights.upper() == "N":
         tf.print("Starting phase 1 training...")
-        stage1_train(generator, train_ds, val_ds, epochs=120)
+        stage1_train(generator, train_sr, val_sr, epochs=120)
     elif load_weights.upper() == "Y":
         generator.load_weights("./checkpoints/mae_pretrained.weights.h5")
     else:
@@ -121,18 +106,17 @@ def main():
         discriminator,
         g_optimizer,
         d_optimizer,
-        train_ds,
-        val_ds,
+        train_sr,
+        val_sr,
         patience=30,
         epoch=200,
     )
 
     # Evaluate with test data
-    evaluate(generator, test_ds)
+    evaluate(generator, test_sr)
 
     # Create comparison image
-    test_samples = list(test_ds)
-    lr, hr = random.choice(test_samples)
+    lr, hr = random.choice(test_sr)
     sr = generator(lr, training=False)
     plot_comparison(lr, sr, hr)
 

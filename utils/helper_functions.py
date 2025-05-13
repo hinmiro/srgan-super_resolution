@@ -68,28 +68,6 @@ def add_random_noise(img):
     return img
 
 
-def random_crop_pair(lr, hr, hr_crop_size=92, scale=4):
-    lr = tf.image.convert_image_dtype(lr, tf.float32)
-    hr = tf.image.convert_image_dtype(hr, tf.float32)
-
-    lr_crop_size = hr_crop_size // scale
-
-    lr_shape = tf.shape(lr)
-    lr_x = tf.random.uniform((), 0, lr_shape[0] - lr_crop_size + 1, dtype=tf.int32)
-    lr_y = tf.random.uniform((), 0, lr_shape[1] - lr_crop_size + 1, dtype=tf.int32)
-
-    # Crop lr image
-    lr_cropped = lr[lr_x : lr_x + lr_crop_size, lr_y : lr_y + lr_crop_size, :]
-
-    hr_x = lr_x * scale
-    hr_y = lr_y * scale
-
-    # Crop hr image
-    hr_cropped = hr[hr_x : hr_x + hr_crop_size, hr_y : hr_y + hr_crop_size, :]
-
-    return lr_cropped, hr_cropped
-
-
 reduce_lr = ReduceLROnPlateau(
     monitor="val_loss", factor=0.5, patience=5, min_lr=1e-6, verbose=1
 )

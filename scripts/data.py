@@ -1,58 +1,10 @@
 import glob
 import os
-from zipfile import ZipFile
-
 import requests
 import tensorflow as tf
 
-
-def file_based_patch_generator(
-    data_dir, crop_size=192, scale=4, n_patches_per_image=10
-):
-    """Generate patches directly from image files without loading whole dataset into memory"""
-    # Get all image files
-    files = glob.glob(os.path.join(data_dir, "*.png")) + glob.glob(
-        os.path.join(data_dir, "*.jpg")
-    )
-
-    for file_path in files:
-        # Load single image
-        img = tf.io.read_file(file_path)
-        hr_img = tf.image.decode_image(img, channels=3)
-        hr_img = tf.image.convert_image_dtype(hr_img, tf.float32)
-        hr_shape = tf.shape(hr_img)
-
-        # Only process images that are large enough
-        if hr_shape[0] > crop_size and hr_shape[1] > crop_size:
-            for _ in range(n_patches_per_image):
-                # Random crop
-                y = tf.random.uniform([], 0, hr_shape[0] - crop_size, dtype=tf.int32)
-                x = tf.random.uniform([], 0, hr_shape[1] - crop_size, dtype=tf.int32)
-                hr_patch = hr_img[y : y + crop_size, x : x + crop_size, :]
-
-                # Create LR patch by downscaling
-                lr_patch = tf.image.resize(
-                    hr_patch, [crop_size // scale, crop_size // scale], method="area"
-                )
-
-                yield lr_patch, hr_patch
-
-
-def get_file_patch_dataset(data_dir, crop_size=192, scale=4, n_patches_per_image=10):
-    """Create dataset from file-based patch generator"""
-    output_signature = (
-        tf.TensorSpec(
-            shape=(crop_size // scale, crop_size // scale, 3), dtype=tf.float32
-        ),
-        tf.TensorSpec(shape=(crop_size, crop_size, 3), dtype=tf.float32),
-    )
-
-    return tf.data.Dataset.from_generator(
-        lambda: file_based_patch_generator(
-            data_dir, crop_size, scale, n_patches_per_image
-        ),
-        output_signature=output_signature,
-    )
+from utils.helper_functions import load_image
+from zipfile import ZipFile
 
 
 def download_data():
@@ -82,3 +34,53 @@ def download_data():
         print("Extracted files!")
 
     print("Data pulling ready:", data_dir)
+
+
+def load_dataset(data_dir):
+    train_dir = os.path.join(data_dir, "DIV2K_train_HR")
+    val_dir = os.path.join(data_dir, "DIV2K_valid_HR")
+    test_dir = os.path.join(data_dir, "DIV2K_test_HR")
+
+    train_files = [
+        os.path.join(train_dir, fname)
+        for fname in os.listdir(train_dir)
+        if fname.lower().endswith((".png", ".jpg", ".jpeg"))
+    ]
+
+    val_files = [
+        os.path.join(val_dir, fname)
+        for fname in os.listdir(val_dir)
+        if fname.lower().endswith((".png", ".jpg", ".jpeg"))
+    ]
+
+    test_files = [
+        os.path.join(test_dir, fname)
+        for fname in os.listdir(test_dir)
+        if fname.lower().endswith((".png", ".jpg", ".jpeg"))
+    ]
+
+    train_ds = tf.data.Dataset.from_tensor_slices(train_files).map(
+        load_image, num_parallel_calls=tf.data.AUTOTUNE
+    )
+
+    val_ds = tf.data.Dataset.from_tensor_slices(val_files).map(
+        load_image, num_parallel_calls=tf.data.AUTOTUNE
+    )
+
+    test_ds = tf.data.Dataset.from_tensor_slices(test_files).map(
+        load_image, num_parallel_calls=tf.data.AUTOTUNE
+    )
+
+
+def construct_datasets(train_files, val_files, test_files):
+    train_ds = tf.data.Dataset.from_tensor_slices(train_files).map(
+        load_image, num_parallel_calls=tf.data.AUTOTUNE
+    )
+
+    val_ds = tf.data.Dataset.from_tensor_slices(val_files).map(
+        load_image, num_parallel_calls=tf.data.AUTOTUNE
+    )
+
+    test_ds = tf.data.Dataset.from_tensor_slices(test_files).map(
+        load_image, num_parallel_calls=tf.data.AUTOTUNE
+    )
