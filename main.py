@@ -98,7 +98,7 @@ def main():
             epoch=200,
         )
     elif skip_train.upper() == "Y":
-        generator.load_model("./checkpoints/srgan_generator.keras")
+        generator = load_model("./checkpoints/srgan_generator.keras")
 
     else:
         print("Invalid choice...")
