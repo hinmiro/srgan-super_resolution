@@ -24,6 +24,8 @@ def stage1_train(generator, train_data, val_data, epochs=100, loss="mae"):
         train_data,
         validation_data=val_data,
         epochs=epochs,
+        steps_per_epoch=400,
+        validation_steps=100,
         callbacks=[early_stop, reduce_lr],
     )
     os.makedirs("../checkpoints", exist_ok=True)

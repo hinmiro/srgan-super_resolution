@@ -57,9 +57,9 @@ def main():
         )"""
 
     # Apply batching to data
-    train_ds = train_ds.batch(BATCH_SIZE).prefetch(1)
-    val_ds = val_ds.batch(BATCH_SIZE).prefetch(1)
-    test_ds = test_ds.batch(BATCH_SIZE).prefetch(1)
+    train_ds = train_ds.repeat().batch(BATCH_SIZE).prefetch(1)
+    val_ds = val_ds.repeat().batch(BATCH_SIZE).prefetch(1)
+    test_ds = test_ds.repeat().batch(BATCH_SIZE).prefetch(1)
 
     # Print data shapes
     for lr, hr in train_ds.take(1):
