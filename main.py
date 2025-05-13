@@ -1,6 +1,7 @@
 import os
 import random
 import shutil
+from resource.banner import banner
 
 import tensorflow as tf
 
@@ -8,7 +9,6 @@ from models.model import build_generator, build_srgan_discriminator
 from scripts.data import construct_datasets, download_data, load_dataset
 from scripts.training import stage1_train, stage_2_train
 from utils.evaluation import evaluate, plot_comparison
-from resource.banner import banner
 from utils.loss_functions import set_dis_optimizer, set_gen_optimizer
 
 
@@ -20,7 +20,6 @@ def main():
     CROP_SIZE = 192
     SCALE = 4
     BATCH_SIZE = 2
-    AUTOTUNE = tf.data.AUTOTUNE
 
     y_n = input("Download dataset? Y/N: ")
     if y_n.upper() == "Y":
@@ -72,36 +71,44 @@ def main():
     d_optimizer = set_dis_optimizer(learning_rate=5e-7)
     g_optimizer = set_gen_optimizer(learning_rate=1e-4)
 
-    # Stage 1 training with mae loss function
-    load_weights = input("Load pretrained weights to skip pre training? Y/N: ")
-    if load_weights.upper() == "N":
-        tf.print("Starting phase 1 training...")
-        stage1_train(generator, train_sr, val_sr, epochs=120)
-    elif load_weights.upper() == "Y":
-        generator.load_weights("./checkpoints/mae_pretrained.weights.h5")
+    skip_train = input("Skip training and load pretrained model? Y/N: ")
+    if skip_train.upper() == "N":
+
+        # Stage 1 training with mae loss function
+        load_weights = input("Load pretrained weights to skip pre training? Y/N: ")
+        if load_weights.upper() == "N":
+            tf.print("Starting phase 1 training...")
+            stage1_train(generator, train_sr, val_sr, epochs=120)
+        elif load_weights.upper() == "Y":
+            generator.load_weights("./checkpoints/mae_pretrained.weights.h5")
+        else:
+            print("Invalid choice...")
+
+        # Stage 2 training
+        tf.print("Starting phase 2 training...")
+        history = stage_2_train(
+            generator,
+            discriminator,
+            g_optimizer,
+            d_optimizer,
+            train_sr,
+            val_sr,
+            patience=30,
+            epoch=200,
+        )
+    elif skip_train.upper() == "Y":
+        generator.load_model("./checkpoints/srgan_generator.keras")
+
     else:
         print("Invalid choice...")
-
-    # Stage 2 training
-    tf.print("Starting phase 2 training...")
-    history = stage_2_train(
-        generator,
-        discriminator,
-        g_optimizer,
-        d_optimizer,
-        train_sr,
-        val_sr,
-        patience=30,
-        epoch=200,
-    )
 
     # Evaluate with test data
     evaluate(generator, test_sr)
 
     # Create comparison image
-    lr, hr = random.choice(test_sr)
-    sr = generator(lr, training=False)
-    plot_comparison(lr, sr, hr)
+    for lr, hr in test_sr.take(1):
+        sr = generator(lr, training=False)
+        plot_comparison(lr, sr, hr)
 
 
 if __name__ == "__main__":
