@@ -10,6 +10,7 @@ from scripts.data import construct_datasets, download_data, load_dataset
 from scripts.training import stage1_train, stage_2_train
 from utils.evaluation import evaluate, plot_comparison
 from utils.loss_functions import set_dis_optimizer, set_gen_optimizer
+from utils.util import load_model
 
 
 def main():
