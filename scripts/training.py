@@ -103,6 +103,11 @@ def stage_2_train(
             )
             progress.update(task, description=desc)
 
+            print(
+                f"Epoch {epoch+1}/{EPOCHS} | g_loss: {np.mean(g_losses):.3f}, d_loss: {np.mean(d_losses):.3f}, "
+                f"PSNR: {val_psnr:.3f}, SSIM: {val_ssim:.3f} | Elapsed: {elapsed_str}"
+            )
+
             g_losses_history.append(np.mean(g_losses))
             d_losses_history.append(np.mean(d_losses))
             val_g_loss = np.mean(g_losses)
