@@ -7,10 +7,7 @@ from keras.optimizers import Adam
 from rich.progress import Progress
 
 from utils.helper_functions import early_stop, reduce_lr
-from utils.loss_functions import (
-    discriminator_loss,
-    generator_loss,
-)
+from utils.loss_functions import discriminator_loss, generator_loss
 from utils.util import PSNR, SSIM
 
 
@@ -71,7 +68,7 @@ def stage_2_train(
     patience=20,
     epoch=200,
 ):
-    best_ssim = -np.inf
+    best_g_loss = np.inf
     wait = 0
     EPOCHS = epoch
     g_losses_history, d_losses_history = [], []
@@ -92,7 +89,7 @@ def stage_2_train(
                 progress.update(
                     task,
                     advance=1,
-                    description=f"[cyan]Epoch {epoch+1}/{EPOCHS} | Batch: {batch_idx+1}/{num_batches} d_loss {d_loss:.3f}]",
+                    description=f"[cyan]Epoch {epoch+1}/{EPOCHS} Batch: {batch_idx+1}/{num_batches} g_loss {g_loss:.3f}, d_loss {d_loss:.3f}",
                 )
 
             # Validation
@@ -108,6 +105,7 @@ def stage_2_train(
 
             g_losses_history.append(np.mean(g_losses))
             d_losses_history.append(np.mean(d_losses))
+            val_g_loss = np.mean(g_losses)
 
             # Reduce learning rate
             if wait > 0 and wait % 5 == 0:
@@ -118,8 +116,8 @@ def stage_2_train(
                 progress.console.print(f"[red]Reduced learning rate to {new_lr}[/red]")
 
             # Early stop with ssim
-            if val_ssim > best_ssim:
-                best_ssim = val_ssim
+            if val_g_loss < best_g_loss:
+                best_g_loss = val_g_loss
                 wait = 0
                 generator.save("srgan_generator_best.keras")
             else:
